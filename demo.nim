@@ -1,7 +1,5 @@
 import winim/mean, strutils
 
-# {.link: "resource.res".}
-# {.passL: "-s".}
 
 const
   DLG_MAIN*     =   100
@@ -28,7 +26,55 @@ proc openDialog(title: string): string =
     if GetOpenFileName(o):
         result = $buffer
 
+proc EnumChildProc(hwndChild: HWND, lParam: LPARAM):  BOOL {.stdcall.} =
+    discard
+    var
+        rcParent: LPRECT
+        rcChild, hnd: RECT
+        i, idChild: int
+
+    idChild = GetWindowLong(hwndChild, GWL_ID)   
+
+    rcParent = cast[LPRECT](lParam)   
+
+    GetClientRect(hwndChild, &hnd)  
+
+    # CHECK CHILD HERE
+    case idChild
+        of IDC_BUTTON_OPEN:
+            rcChild.left = (rcParent.right-(hnd.right-hnd.left)-20)
+            rcChild.top = rcParent.top+20
+            rcChild.right = hnd.right - hnd.left
+            rcChild.bottom = hnd.bottom - hnd.top
+
+        of IDC_SLIDER1:
+            rcChild.left = (rcParent.right-(hnd.right-hnd.left)-20)
+            rcChild.top = rcParent.top+60
+            rcChild.right = hnd.right - hnd.left
+            rcChild.bottom = hnd.bottom - hnd.top    
+
+        of IDC_RICHEDIT1:
+            rcChild.left    = rcParent.left + 20
+            rcChild.top     = rcParent.top+ 100
+            rcChild.right   = rcParent.right - 40
+            rcChild.bottom  = rcParent.bottom - 130                   
+
+        of IDC_EDIT1:
+            rcChild.left    = rcParent.left + 20
+            rcChild.top     = rcParent.top+20
+            rcChild.right   = rcParent.right - 140
+            rcChild.bottom  = rcParent.top + 26
+
+        else:
+            return TRUE
         
+    # REPOSITION CHILD
+    MoveWindow(hwndChild, rcChild.left, rcChild.top, rcChild.right, rcChild.bottom, TRUE)
+
+    # IS THIS NEEDED?
+    ShowWindow(hwndChild, SW_SHOW)
+
+    return TRUE
 
 proc DialogProc(hwndDlg: HWND, uMsg: UINT, wParam: WPARAM, lParam: LPARAM): INT_PTR {.stdcall.} =
 
@@ -111,17 +157,8 @@ proc DialogProc(hwndDlg: HWND, uMsg: UINT, wParam: WPARAM, lParam: LPARAM): INT_
 
             GetClientRect(hwndDlg, &rc)  
 
-            GetClientRect(GetDlgItem(hwndDlg,IDC_BUTTON_OPEN), &hnd) 
-            MoveWindow(GetDlgItem(hwndDlg, IDC_BUTTON_OPEN),(rc.right-(hnd.right-hnd.left)-20),rc.top+20,(hnd.right - hnd.left),hnd.bottom - hnd.top, TRUE) 
-            
-            MapDialogRect(GetDlgItem(hwndDlg,IDC_SLIDER1), &hnd) 
-            MoveWindow(GetDlgItem(hwndDlg, IDC_SLIDER1),(rc.right-(hnd.right - hnd.left)-20),rc.top+60,(hnd.right - hnd.left),hnd.bottom - hnd.top, TRUE)    
+            EnumChildWindows(hwndDlg, EnumChildProc, cast[LPARAM](&rc))
 
-            MapDialogRect(GetDlgItem(hwndDlg,IDC_RICHEDIT1), &hnd)
-            MoveWindow(GetDlgItem(hwndDlg, IDC_RICHEDIT1),(rc.left+20),rc.top+100,rc.right-40,rc.bottom-130,1)   
-
-            MapDialogRect(GetDlgItem(hwndDlg,IDC_EDIT1), &hnd) 
-            MoveWindow(GetDlgItem(hwndDlg, IDC_EDIT1),(rc.left+20),rc.top+20, rc.right - hnd.right*2, hnd.bottom, TRUE) 
             return TRUE
 
         of WM_GETMINMAXINFO:
