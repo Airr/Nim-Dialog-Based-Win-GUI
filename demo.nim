@@ -105,7 +105,33 @@ proc DialogProc(hwndDlg: HWND, uMsg: UINT, wParam: WPARAM, lParam: LPARAM): INT_
             # GRACEFULLY END THE APP INSTANCE
             PostQuitMessage(0)
             return TRUE
-        
+
+        of WM_SIZE:
+            var rc, hnd: RECT
+
+            GetClientRect(hwndDlg, &rc)  
+
+            GetClientRect(GetDlgItem(hwndDlg,IDC_BUTTON_OPEN), &hnd) 
+            MoveWindow(GetDlgItem(hwndDlg, IDC_BUTTON_OPEN),(rc.right-(hnd.right-hnd.left)-20),rc.top+20,(hnd.right - hnd.left),hnd.bottom - hnd.top, TRUE) 
+            
+            MapDialogRect(GetDlgItem(hwndDlg,IDC_SLIDER1), &hnd) 
+            MoveWindow(GetDlgItem(hwndDlg, IDC_SLIDER1),(rc.right-(hnd.right - hnd.left)-20),rc.top+60,(hnd.right - hnd.left),hnd.bottom - hnd.top, TRUE)    
+
+            MapDialogRect(GetDlgItem(hwndDlg,IDC_RICHEDIT1), &hnd)
+            MoveWindow(GetDlgItem(hwndDlg, IDC_RICHEDIT1),(rc.left+20),rc.top+100,rc.right-40,rc.bottom-130,1)   
+
+            MapDialogRect(GetDlgItem(hwndDlg,IDC_EDIT1), &hnd) 
+            MoveWindow(GetDlgItem(hwndDlg, IDC_EDIT1),(rc.left+20),rc.top+20, rc.right - hnd.right*2, hnd.bottom, TRUE) 
+            return TRUE
+
+        of WM_GETMINMAXINFO:
+            var mm = cast[LPMINMAXINFO](lParam)
+            # echo mm.ptMinTrackSize.y
+            mm.ptMinTrackSize.x = mm.ptMinTrackSize.x * 7
+            mm.ptMinTrackSize.y = mm.ptMinTrackSize.y * 17
+
+
+
         else:
             return FALSE
 
