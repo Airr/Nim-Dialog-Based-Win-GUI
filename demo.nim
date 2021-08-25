@@ -27,43 +27,42 @@ proc openDialog(title: string): string =
         result = $buffer
 
 proc EnumChildProc(hwndChild: HWND, lParam: LPARAM):  BOOL {.stdcall.} =
-    discard
+
     var
-        rcParent: LPRECT
         rcChild, hnd: RECT
-        i, idChild: int
+        idChild: int
+        width = cast[int32](LOWORD(lParam))
+        height = cast[int32](HIWORD(lParam))
 
     idChild = GetWindowLong(hwndChild, GWL_ID)   
-
-    rcParent = cast[LPRECT](lParam)   
 
     GetClientRect(hwndChild, &hnd)  
 
     # CHECK CHILD HERE
     case idChild
         of IDC_BUTTON_OPEN:
-            rcChild.left = (rcParent.right-(hnd.right-hnd.left)-20)
-            rcChild.top = rcParent.top+20
+            rcChild.left = (width-(hnd.right-hnd.left)-20)
+            rcChild.top = 20
             rcChild.right = hnd.right - hnd.left
             rcChild.bottom = hnd.bottom - hnd.top
 
         of IDC_SLIDER1:
-            rcChild.left = (rcParent.right-(hnd.right-hnd.left)-20)
-            rcChild.top = rcParent.top+60
+            rcChild.left = (width-(hnd.right-hnd.left)-20)
+            rcChild.top = 60
             rcChild.right = hnd.right - hnd.left
             rcChild.bottom = hnd.bottom - hnd.top    
 
         of IDC_RICHEDIT1:
-            rcChild.left    = rcParent.left + 20
-            rcChild.top     = rcParent.top+ 100
-            rcChild.right   = rcParent.right - 40
-            rcChild.bottom  = rcParent.bottom - 130                   
+            rcChild.left    = 20
+            rcChild.top     = 100
+            rcChild.right   = width - 40
+            rcChild.bottom  = height - 130                   
 
         of IDC_EDIT1:
-            rcChild.left    = rcParent.left + 20
-            rcChild.top     = rcParent.top+20
-            rcChild.right   = rcParent.right - 140
-            rcChild.bottom  = rcParent.top + 26
+            rcChild.left    = 20
+            rcChild.top     = 20
+            rcChild.right   = width - 140
+            rcChild.bottom  = 26
 
         else:
             return TRUE
@@ -153,17 +152,14 @@ proc DialogProc(hwndDlg: HWND, uMsg: UINT, wParam: WPARAM, lParam: LPARAM): INT_
             return TRUE
 
         of WM_SIZE:
-            var rc, hnd: RECT
 
-            GetClientRect(hwndDlg, &rc)  
-
-            EnumChildWindows(hwndDlg, EnumChildProc, cast[LPARAM](&rc))
+            EnumChildWindows(hwndDlg, EnumChildProc, lParam)
 
             return TRUE
 
         of WM_GETMINMAXINFO:
             var mm = cast[LPMINMAXINFO](lParam)
-            # echo mm.ptMinTrackSize.y
+
             mm.ptMinTrackSize.x = mm.ptMinTrackSize.x * 7
             mm.ptMinTrackSize.y = mm.ptMinTrackSize.y * 17
 
