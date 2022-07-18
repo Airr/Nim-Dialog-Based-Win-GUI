@@ -2,7 +2,7 @@
 WINDRES := windres.exe
 RES_SOURCE := resources\resource.rc
 RES := resource.res
-APP := demo
+APP := demo2
 
 CC := nim.exe
 CC_FLAGS := c -d:release --app:gui --passL:-s --link:${RES}
